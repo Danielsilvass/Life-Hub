@@ -21,6 +21,7 @@ export function DbProvider({ children }) {
   const [eventos, setEventos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [recorrentes, setRecorrentes] = useState([]);
+  const [rotinaTreino, setRotinaTreino] = useState(null);
   
   const [brainstorm, setBrainstorm] = useState([]);
   const [wishlist, setWishlist] = useState([]);
@@ -178,6 +179,10 @@ export function DbProvider({ children }) {
       onSnapshot(doc(db, `users/${uid}/saude/perfil`), snap => {
         if (snap.exists()) setSaudePerfil({ id: snap.id, ...snap.data() });
         else setSaudePerfil(null);
+      }),
+      onSnapshot(doc(db, `users/${uid}/treino_rotina/semana`), snap => {
+        if (snap.exists()) setRotinaTreino(snap.data());
+        else setRotinaTreino(null);
       })
     ];
 
@@ -559,6 +564,49 @@ export function DbProvider({ children }) {
     }
   };
 
+  const saveRotinaTreino = async (rotinaData) => {
+    if (!user) return;
+    try {
+      await setDoc(doc(db, `users/${user.uid}/treino_rotina/semana`), {
+        ...rotinaData,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Erro em saveRotinaTreino:", error);
+      throw error;
+    }
+  };
+
+  const toggleTreinoDiario = async (dataISO, feito, descricao) => {
+    if (!user) return;
+    try {
+      const uid = user.uid;
+      const ref = doc(db, `users/${uid}/treinos`, dataISO);
+      
+      if (feito) {
+        await setDoc(ref, {
+          tipo: "Rotina",
+          descricao: descricao,
+          dataISO: dataISO,
+          data: serverTimestamp()
+        });
+        
+        // Mantém streak se desejar
+        const habitoTreinar = habitos.find(h => h.nome.toLowerCase() === "treinar");
+        if (!habitoTreinar) {
+           await addDoc(collection(db, `users/${uid}/habitos`), {
+              nome: "Treinar", streakAtual: 1, streakMaior: 1, createdAt: serverTimestamp()
+           });
+        }
+      } else {
+        await deleteDoc(ref);
+      }
+    } catch (err) {
+      console.error("Erro em toggleTreinoDiario:", err);
+      throw err;
+    }
+  };
+
   const value = {
     user,
     transacoes,
@@ -595,7 +643,10 @@ export function DbProvider({ children }) {
     buyWishlistItem,
     addHealthProfile,
     updateWeight,
-    addWorkout
+    addWorkout,
+    rotinaTreino,
+    saveRotinaTreino,
+    toggleTreinoDiario
   };
 
   return (

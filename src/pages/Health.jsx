@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useDb } from '../contexts/DbContext';
-import { Activity, Dumbbell, Scale, Apple, TrendingDown, Target, Zap } from 'lucide-react';
+import { Activity, Dumbbell, Scale, Apple, TrendingDown, Target, Zap, CheckCircle } from 'lucide-react';
 import { calcularIMC, previsaoMetaPeso, calcularFrequenciaTreino } from '../utils/predictions';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 
 export default function Health() {
-  const { saudePerfil, pesoLogs, treinos, dieta, getTodayDiet, saveDiet, addHealthProfile, updateWeight, addWorkout, user } = useDb();
+  const { saudePerfil, pesoLogs, treinos, dieta, getTodayDiet, saveDiet, addHealthProfile, updateWeight, addWorkout, user, rotinaTreino, saveRotinaTreino, toggleTreinoDiario } = useDb();
   
   // Profile Form
   const [altura, setAltura] = useState("");
@@ -15,10 +15,19 @@ export default function Health() {
   // Weight Log Form
   const [novoPeso, setNovoPeso] = useState("");
 
-  // Workout Form
-  const [tipoTreino, setTipoTreino] = useState("Calistenia");
-  const [descTreino, setDescTreino] = useState("");
-  const [duracao, setDuracao] = useState("45");
+  // Workout Form (Weekly Routine)
+  const [workoutForm, setWorkoutForm] = useState({
+      segunda: "",
+      terca: "",
+      quarta: "",
+      quinta: "",
+      sexta: "",
+      sabado: "",
+      domingo: ""
+  });
+  const [workoutSaving, setWorkoutSaving] = useState(false);
+  const [dirtyWorkout, setDirtyWorkout] = useState(false);
+  const [weekDates, setWeekDates] = useState({});
   
   const [loading, setLoading] = useState(false);
 
@@ -93,17 +102,72 @@ export default function Health() {
     setLoading(false);
   };
 
-  const handleAddWorkout = async () => {
-    if (!descTreino || !duracao) return;
-    setLoading(true);
-    await addWorkout({
-       tipo: tipoTreino,
-       descricao: descTreino,
-       duracao: Number(duracao)
+  useEffect(() => {
+    const currentDate = new Date();
+    const currentDay = currentDate.getDay();
+    const diffToMonday = currentDay === 0 ? 6 : currentDay - 1;
+    const mondayDate = new Date(currentDate);
+    mondayDate.setDate(currentDate.getDate() - diffToMonday);
+
+    const dates = {};
+    const dKeys = ["segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo"];
+    dKeys.forEach((key, i) => {
+        const dDate = new Date(mondayDate);
+        dDate.setDate(mondayDate.getDate() + i);
+        const tzoffset = dDate.getTimezoneOffset() * 60000;
+        const dateStr = new Date(dDate.getTime() - tzoffset).toISOString().split('T')[0];
+        dates[key] = dateStr;
     });
-    setDescTreino("");
-    setDuracao("45");
-    setLoading(false);
+    setWeekDates(dates);
+  }, []);
+
+  useEffect(() => {
+     if (dirtyWorkout) return;
+     if (rotinaTreino) {
+        setWorkoutForm({
+           segunda: rotinaTreino.segunda || "",
+           terca: rotinaTreino.terca || "",
+           quarta: rotinaTreino.quarta || "",
+           quinta: rotinaTreino.quinta || "",
+           sexta: rotinaTreino.sexta || "",
+           sabado: rotinaTreino.sabado || "",
+           domingo: rotinaTreino.domingo || ""
+        });
+     }
+  }, [rotinaTreino, dirtyWorkout]);
+
+  const handleSaveWorkout = async () => {
+      setWorkoutSaving(true);
+      try {
+         await saveRotinaTreino(workoutForm);
+      } catch(e) { console.error(e); }
+      setWorkoutSaving(false);
+      setDirtyWorkout(false);
+  };
+
+  useEffect(() => {
+     if (!dirtyWorkout) return;
+     const timeout = setTimeout(() => {
+        handleSaveWorkout();
+     }, 1000);
+     return () => clearTimeout(timeout);
+  }, [workoutForm, dirtyWorkout]);
+
+  const handleChangeWorkout = (field, val) => {
+     setWorkoutForm(prev => ({ ...prev, [field]: val }));
+     setDirtyWorkout(true);
+  };
+
+  const isWorkoutDone = (dateStr) => {
+     return treinos.some(t => t.id === dateStr || t.dataISO === dateStr);
+  };
+
+  const handleToggleDone = async (dayKey) => {
+     const dateStr = weekDates[dayKey];
+     if (!dateStr) return;
+     const isDone = isWorkoutDone(dateStr);
+     const desc = workoutForm[dayKey] || "Treino Realizado";
+     await toggleTreinoDiario(dateStr, !isDone, desc);
   };
 
   // derived state
@@ -126,77 +190,92 @@ export default function Health() {
         <p className="text-zinc-400 mt-2 font-medium">Controle de métricas físicas, treinos e alimentação.</p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-sm col-span-1 lg:col-span-2 space-y-6 flex flex-col">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col">
+          <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-white flex items-center gap-2"><Scale className="text-teal-500" size={22}/> Medidas e Peso</h2>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
-                      <p className="text-zinc-400 text-xs font-bold uppercase mb-1">IMC Atual</p>
-                      <p className="text-2xl font-black text-white">{imc > 0 ? imc : '--'}</p>
-                  </div>
-                  <div className="p-4 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
-                      <p className="text-zinc-400 text-xs font-bold uppercase mb-1">Previsão Meta</p>
-                      <p className="text-2xl font-black text-teal-400">{prevPeso}</p>
-                  </div>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-4 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
+                  <p className="text-zinc-400 text-xs font-bold uppercase mb-1">IMC Atual</p>
+                  <p className="text-2xl font-black text-white">{imc > 0 ? imc : '--'}</p>
               </div>
-
-              <div className="flex flex-col md:flex-row gap-4 border-t border-zinc-800 pt-6">
-                  <div className="flex-1 space-y-3">
-                      <h3 className="text-sm font-bold text-zinc-400 uppercase">Perfil Base</h3>
-                      <input type="number" placeholder="Altura (cm)" value={altura} onChange={e=>setAltura(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white outline-none focus:border-green-500" />
-                      <input type="number" step="0.1" placeholder="Meta de Peso (kg)" value={pesoObjetivo} onChange={e=>setPesoObjetivo(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white outline-none focus:border-green-500" />
-                      <button onClick={handleSaveProfile} disabled={loading} className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-1">Salvar Perfil</button>
-                  </div>
-                  <div className="w-px bg-zinc-800 hidden md:block"></div>
-                  <div className="flex-1 space-y-3">
-                      <h3 className="text-sm font-bold text-zinc-400 uppercase">Registrar Peso Hoje</h3>
-                      <div className="px-4 py-2 bg-teal-500/10 border border-teal-500/20 rounded-lg mb-3">
-                          <p className="text-teal-500 font-bold flex items-center gap-2"><TrendingDown size={18}/> {pesoAtual ? `${pesoAtual} kg` : 'Nenhum registro'}</p>
-                      </div>
-                      <input type="number" step="0.1" placeholder="Novo Peso (kg)" value={novoPeso} onChange={e=>setNovoPeso(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white outline-none focus:border-green-500" />
-                      <button onClick={handleLogWeight} disabled={loading || !novoPeso} className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-1">Logar Peso</button>
-                  </div>
+              <div className="p-4 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
+                  <p className="text-zinc-400 text-xs font-bold uppercase mb-1">Previsão Meta</p>
+                  <p className="text-2xl font-black text-teal-400">{prevPeso}</p>
               </div>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-sm space-y-6 flex flex-col">
-             <h2 className="text-xl font-bold text-white flex items-center gap-2"><Dumbbell className="text-violet-500" size={22}/> Treinos</h2>
-             
-             <div className="p-4 bg-violet-500/10 rounded-xl flex items-center justify-between border border-violet-500/20">
-                 <div>
-                    <p className="text-violet-500 font-bold text-sm">Frequência 7 dias</p>
-                    <p className="text-2xl font-black text-white">{freqTreino} treinos</p>
-                 </div>
-                 <Zap size={32} className="text-violet-500 opacity-50"/>
-             </div>
+          <div className="flex flex-col md:flex-row gap-4 border-t border-zinc-800 pt-6 mt-6">
+              <div className="flex-1 space-y-3">
+                  <h3 className="text-sm font-bold text-zinc-400 uppercase">Perfil Base</h3>
+                  <input type="number" placeholder="Altura (cm)" value={altura} onChange={e=>setAltura(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white outline-none focus:border-green-500" />
+                  <input type="number" step="0.1" placeholder="Meta de Peso (kg)" value={pesoObjetivo} onChange={e=>setPesoObjetivo(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white outline-none focus:border-green-500" />
+                  <button onClick={handleSaveProfile} disabled={loading} className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-1">Salvar Perfil</button>
+              </div>
+              <div className="w-px bg-zinc-800 hidden md:block"></div>
+              <div className="flex-1 space-y-3">
+                  <h3 className="text-sm font-bold text-zinc-400 uppercase">Registrar Peso Hoje</h3>
+                  <div className="px-4 py-2 bg-teal-500/10 border border-teal-500/20 rounded-lg mb-3">
+                      <p className="text-teal-500 font-bold flex items-center gap-2"><TrendingDown size={18}/> {pesoAtual ? `${pesoAtual} kg` : 'Nenhum registro'}</p>
+                  </div>
+                  <input type="number" step="0.1" placeholder="Novo Peso (kg)" value={novoPeso} onChange={e=>setNovoPeso(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white outline-none focus:border-green-500" />
+                  <button onClick={handleLogWeight} disabled={loading || !novoPeso} className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-1">Logar Peso</button>
+              </div>
+          </div>
+      </div>
 
-             <div className="space-y-3 border-t border-zinc-800 pt-6">
-                <select value={tipoTreino} onChange={e=>setTipoTreino(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-zinc-300 outline-none focus:border-green-500">
-                   <option>Calistenia</option>
-                   <option>Academia</option>
-                   <option>Cardio</option>
-                </select>
-                <input type="text" placeholder="Nome/Descrição do treino" value={descTreino} onChange={e=>setDescTreino(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white outline-none focus:border-green-500" />
-                <input type="number" placeholder="Duração (min)" value={duracao} onChange={e=>setDuracao(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white outline-none focus:border-green-500" />
-                <button onClick={handleAddWorkout} disabled={loading || !descTreino} className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50">Salvar Treino</button>
-             </div>
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col">
+         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-4">
+               <h2 className="text-xl font-bold text-white flex items-center gap-2"><Dumbbell className="text-violet-500" size={22}/> Rotina Semanal de Treinos</h2>
+               <div className="px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full flex items-center gap-2">
+                   <span className="text-violet-500 font-bold text-xs uppercase">Freq 7 Dias: {freqTreino}</span>
+               </div>
+            </div>
+            <button 
+               onClick={handleSaveWorkout} 
+               disabled={workoutSaving || !dirtyWorkout}
+               className="bg-green-500 hover:bg-green-600 disabled:bg-zinc-800 disabled:text-zinc-500 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center min-w-[120px]"
+            >
+               {workoutSaving ? "..." : (dirtyWorkout ? "Pendente" : "Salvo")}
+            </button>
+         </div>
 
-             <div className="flex-1 overflow-y-auto space-y-2 mt-4 custom-scrollbar pr-2 max-h-[140px]">
-                 {[...treinos].reverse().slice(0, 5).map(t => (
-                     <div key={t.id} className="text-sm bg-zinc-800/30 p-3 rounded-lg border border-zinc-700/50 flex justify-between items-center transition-colors hover:border-zinc-600">
-                         <div>
-                             <p className="font-bold text-white leading-tight">{t.descricao}</p>
-                             <div className="flex gap-2 items-center mt-0.5">
-                                <span className="text-[10px] text-zinc-500 uppercase font-semibold">{t.tipo}</span>
-                                <span className="text-xs text-violet-400 font-mono">{t.duracao} min</span>
-                             </div>
-                         </div>
-                         <button onClick={()=>handleDeleteWorkout(t.id)} className="text-zinc-500 hover:text-red-500 p-1 rounded transition-colors"><TrendingDown className="rotate-45" size={16}/></button>
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+            {[
+              { key: "segunda", label: "Segunda" },
+              { key: "terca", label: "Terça" },
+              { key: "quarta", label: "Quarta" },
+              { key: "quinta", label: "Quinta" },
+              { key: "sexta", label: "Sexta" },
+              { key: "sabado", label: "Sábado" },
+              { key: "domingo", label: "Domingo" }
+            ].map(day => {
+               const dateStr = weekDates[day.key];
+               const done = isWorkoutDone(dateStr);
+               return (
+                  <div key={day.key} className="space-y-2 flex flex-col">
+                     <div className="flex justify-between items-center px-1">
+                        <label className="text-violet-500 font-bold text-sm">{day.label}</label>
+                        <button 
+                           onClick={() => handleToggleDone(day.key)}
+                           className={`p-1.5 rounded-full transition-colors flex shadow-sm ${done ? 'bg-green-500 text-black' : 'bg-zinc-800 text-zinc-500 hover:text-green-500 hover:bg-zinc-700'}`}
+                           title={done ? "Treino Feito!" : "Marcar como Feito"}
+                        >
+                           <CheckCircle size={18} className={done ? "fill-black text-green-500 stroke-[3]" : ""} />
+                        </button>
                      </div>
-                 ))}
-             </div>
-          </div>
+                     <textarea 
+                        value={workoutForm[day.key]} 
+                        onChange={e => handleChangeWorkout(day.key, e.target.value)}
+                        placeholder="Descanso"
+                        className={`w-full h-24 bg-zinc-800 border ${done ? 'border-green-500/50' : 'border-zinc-700'} text-white rounded-lg p-3 resize-none focus:outline-none focus:border-violet-500 transition-colors custom-scrollbar`}
+                     />
+                  </div>
+               )
+            })}
+         </div>
       </div>
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col">
