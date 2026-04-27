@@ -39,13 +39,13 @@ function AppContent() {
 
   return (
     <Router>
-      <div className="flex flex-col lg:flex-row h-screen bg-zinc-950 text-slate-200 font-sans overflow-hidden">
+      <div className="flex flex-col lg:flex-row h-[100dvh] bg-zinc-950 text-slate-200 font-sans overflow-hidden">
         <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
         
         <div className="flex-1 flex flex-col min-w-0 relative">
           <MobileHeader onMenuClick={() => setSidebarOpen(true)} />
           
-          <main className="flex-1 flex flex-col p-4 pb-24 lg:pb-4 lg:pl-0 overflow-hidden">
+          <main className="flex-1 flex flex-col p-4 pb-24 lg:pb-4 lg:pl-0">
             <div className="flex-1 bg-zinc-950 border border-zinc-800 rounded-2xl lg:rounded-3xl overflow-y-auto shadow-2xl relative custom-scrollbar">
               <Suspense fallback={<LoadingFallback />}>
                 <Routes>
