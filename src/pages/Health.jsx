@@ -181,68 +181,67 @@ export default function Health() {
   };
 
   return (
-    <div className="w-full flex justify-center pb-24">
-      <div className="w-full max-w-6xl px-6 py-6 space-y-6 flex flex-col animate-in fade-in duration-500">
+    <div className="w-full flex justify-center pb-8 lg:pb-12">
+      <div className="w-full max-w-6xl px-4 sm:px-6 py-4 sm:py-8 space-y-6 flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
       <header>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
-          Saúde <Activity className="text-rose-500" size={26}/>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          Saúde <Activity className="text-rose-500 shrink-0" size={28}/>
         </h1>
-        <p className="text-zinc-400 mt-2 font-medium">Controle de métricas físicas, treinos e alimentação.</p>
+        <p className="text-zinc-400 mt-2 font-medium text-sm sm:text-base">Métricas, treinos e alimentação.</p>
       </header>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2"><Scale className="text-teal-500" size={22}/> Medidas e Peso</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2"><Scale className="text-teal-500" size={20}/> Medidas e Peso</h2>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
-                  <p className="text-zinc-400 text-xs font-bold uppercase mb-1">IMC Atual</p>
-                  <p className="text-2xl font-black text-white">{imc > 0 ? imc : '--'}</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="p-3 sm:p-4 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
+                  <p className="text-zinc-400 text-[10px] font-bold uppercase mb-1">IMC Atual</p>
+                  <p className="text-xl sm:text-2xl font-black text-white">{imc > 0 ? imc : '--'}</p>
               </div>
-              <div className="p-4 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
-                  <p className="text-zinc-400 text-xs font-bold uppercase mb-1">Previsão Meta</p>
-                  <p className="text-2xl font-black text-teal-400">{prevPeso}</p>
+              <div className="p-3 sm:p-4 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
+                  <p className="text-zinc-400 text-[10px] font-bold uppercase mb-1">Meta</p>
+                  <p className="text-xl sm:text-2xl font-black text-emerald-400">{prevPeso}</p>
               </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 border-t border-zinc-800 pt-6 mt-6">
-              <div className="flex-1 space-y-3">
-                  <h3 className="text-sm font-bold text-zinc-400 uppercase">Perfil Base</h3>
-                  <input type="number" placeholder="Altura (cm)" value={altura} onChange={e=>setAltura(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white outline-none focus:border-green-500" />
-                  <input type="number" step="0.1" placeholder="Meta de Peso (kg)" value={pesoObjetivo} onChange={e=>setPesoObjetivo(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white outline-none focus:border-green-500" />
-                  <button onClick={handleSaveProfile} disabled={loading} className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-1">Salvar Perfil</button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-zinc-800 pt-6 mt-6">
+              <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Perfil Base</h3>
+                  <input type="number" placeholder="Altura (cm)" value={altura} onChange={e=>setAltura(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-base text-white outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                  <input type="number" step="0.1" placeholder="Meta de Peso (kg)" value={pesoObjetivo} onChange={e=>setPesoObjetivo(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-base text-white outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                  <button onClick={handleSaveProfile} disabled={loading} className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-black font-bold px-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.98]">Salvar Perfil</button>
               </div>
-              <div className="w-px bg-zinc-800 hidden md:block"></div>
-              <div className="flex-1 space-y-3">
-                  <h3 className="text-sm font-bold text-zinc-400 uppercase">Registrar Peso Hoje</h3>
-                  <div className="px-4 py-2 bg-teal-500/10 border border-teal-500/20 rounded-lg mb-3">
-                      <p className="text-teal-500 font-bold flex items-center gap-2"><TrendingDown size={18}/> {pesoAtual ? `${pesoAtual} kg` : 'Nenhum registro'}</p>
+              <div className="space-y-3">
+                  <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Log de Peso</h3>
+                  <div className="px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                      <p className="text-emerald-500 font-bold flex items-center gap-2"><TrendingDown size={18}/> {pesoAtual ? `${pesoAtual} kg` : 'Nenhum registro'}</p>
                   </div>
-                  <input type="number" step="0.1" placeholder="Novo Peso (kg)" value={novoPeso} onChange={e=>setNovoPeso(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white outline-none focus:border-green-500" />
-                  <button onClick={handleLogWeight} disabled={loading || !novoPeso} className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-1">Logar Peso</button>
+                  <input type="number" step="0.1" placeholder="Novo Peso (kg)" value={novoPeso} onChange={e=>setNovoPeso(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-base text-white outline-none focus:ring-2 focus:ring-emerald-500/20" />
+                  <button onClick={handleLogWeight} disabled={loading || !novoPeso} className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-black font-bold px-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.98]">Logar Peso</button>
               </div>
           </div>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col">
-         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-4">
-               <h2 className="text-xl font-bold text-white flex items-center gap-2"><Dumbbell className="text-violet-500" size={22}/> Rotina Semanal de Treinos</h2>
-               <div className="px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full flex items-center gap-2">
-                   <span className="text-violet-500 font-bold text-xs uppercase">Freq 7 Dias: {freqTreino}</span>
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col">
+         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+               <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2"><Dumbbell className="text-violet-500" size={20}/> Treino Semanal</h2>
+               <div className="px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full">
+                   <span className="text-violet-500 font-bold text-[10px] uppercase">Freq: {freqTreino}</span>
                </div>
             </div>
             <button 
                onClick={handleSaveWorkout} 
                disabled={workoutSaving || !dirtyWorkout}
-               className="bg-green-500 hover:bg-green-600 disabled:bg-zinc-800 disabled:text-zinc-500 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center min-w-[120px]"
+               className="h-10 sm:h-12 bg-emerald-500 hover:bg-emerald-600 disabled:bg-zinc-800 disabled:text-zinc-500 text-black font-bold px-6 rounded-xl transition-all flex items-center justify-center"
             >
-               {workoutSaving ? "..." : (dirtyWorkout ? "Pendente" : "Salvo")}
+               {workoutSaving ? "..." : (dirtyWorkout ? "Salvar" : "Salvo")}
             </button>
          </div>
 
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
             {[
               { key: "segunda", label: "Segunda" },
               { key: "terca", label: "Terça" },
@@ -257,20 +256,19 @@ export default function Health() {
                return (
                   <div key={day.key} className="space-y-2 flex flex-col">
                      <div className="flex justify-between items-center px-1">
-                        <label className="text-violet-500 font-bold text-sm">{day.label}</label>
+                        <label className="text-violet-500 font-bold text-xs uppercase tracking-wider">{day.label}</label>
                         <button 
                            onClick={() => handleToggleDone(day.key)}
-                           className={`p-1.5 rounded-full transition-colors flex shadow-sm ${done ? 'bg-green-500 text-black' : 'bg-zinc-800 text-zinc-500 hover:text-green-500 hover:bg-zinc-700'}`}
-                           title={done ? "Treino Feito!" : "Marcar como Feito"}
+                           className={`p-1.5 rounded-full transition-all flex shadow-sm ${done ? 'bg-emerald-500 text-black scale-110' : 'bg-zinc-800 text-zinc-500 hover:text-emerald-500'}`}
                         >
-                           <CheckCircle size={18} className={done ? "fill-black text-green-500 stroke-[3]" : ""} />
+                           <CheckCircle size={16} className={done ? "fill-black text-emerald-500 stroke-[3]" : ""} />
                         </button>
                      </div>
                      <textarea 
                         value={workoutForm[day.key]} 
                         onChange={e => handleChangeWorkout(day.key, e.target.value)}
                         placeholder="Descanso"
-                        className={`w-full h-24 bg-zinc-800 border ${done ? 'border-green-500/50' : 'border-zinc-700'} text-white rounded-lg p-3 resize-none focus:outline-none focus:border-violet-500 transition-colors custom-scrollbar`}
+                        className={`w-full h-20 sm:h-24 bg-zinc-800 border ${done ? 'border-emerald-500/50' : 'border-zinc-700'} text-white rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/20 transition-all custom-scrollbar`}
                      />
                   </div>
                )
@@ -278,64 +276,36 @@ export default function Health() {
          </div>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col">
-         <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
-            <h2 className="text-xl font-bold text-white flex gap-2 flex-1"><Apple className="text-emerald-500" size={22}/> Dieta do Dia</h2>
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col">
+         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+            <h2 className="text-lg sm:text-xl font-bold text-white flex gap-2 flex-1"><Apple className="text-emerald-500" size={20}/> Dieta do Dia</h2>
             <button 
                onClick={handleSaveDiet} 
                disabled={dietSaving || !dirtyDiet}
-               className="bg-green-500 hover:bg-green-600 disabled:bg-zinc-800 disabled:text-zinc-500 text-black font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center min-w-[120px]"
+               className="h-10 sm:h-12 bg-emerald-500 hover:bg-emerald-600 disabled:bg-zinc-800 disabled:text-zinc-500 text-black font-bold px-6 rounded-xl transition-all flex items-center justify-center"
             >
-               {dietSaving ? "..." : (dirtyDiet ? "Pendente" : "Salvo")}
+               {dietSaving ? "..." : (dirtyDiet ? "Salvar" : "Salvo")}
             </button>
          </div>
 
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            <div className="space-y-2">
-                <label className="text-emerald-500 font-bold text-sm">Café da Manhã</label>
-                <textarea 
-                    value={dietForm.cafeDaManha} 
-                    onChange={e => handleChangeDiet("cafeDaManha", e.target.value)}
-                    placeholder="Descrição..."
-                    className="w-full h-24 bg-zinc-800 border border-zinc-700 text-white rounded-lg p-3 resize-none focus:outline-none focus:border-green-500 transition-colors custom-scrollbar"
-                />
-            </div>
-            <div className="space-y-2">
-                <label className="text-emerald-500 font-bold text-sm">Almoço</label>
-                <textarea 
-                    value={dietForm.almoco} 
-                    onChange={e => handleChangeDiet("almoco", e.target.value)}
-                    placeholder="Descrição..."
-                    className="w-full h-24 bg-zinc-800 border border-zinc-700 text-white rounded-lg p-3 resize-none focus:outline-none focus:border-green-500 transition-colors custom-scrollbar"
-                />
-            </div>
-            <div className="space-y-2">
-                <label className="text-emerald-500 font-bold text-sm">Lanche da Tarde</label>
-                <textarea 
-                    value={dietForm.lancheTarde} 
-                    onChange={e => handleChangeDiet("lancheTarde", e.target.value)}
-                    placeholder="Descrição..."
-                    className="w-full h-24 bg-zinc-800 border border-zinc-700 text-white rounded-lg p-3 resize-none focus:outline-none focus:border-green-500 transition-colors custom-scrollbar"
-                />
-            </div>
-            <div className="space-y-2">
-                <label className="text-emerald-500 font-bold text-sm">Janta</label>
-                <textarea 
-                    value={dietForm.janta} 
-                    onChange={e => handleChangeDiet("janta", e.target.value)}
-                    placeholder="Descrição..."
-                    className="w-full h-24 bg-zinc-800 border border-zinc-700 text-white rounded-lg p-3 resize-none focus:outline-none focus:border-green-500 transition-colors custom-scrollbar"
-                />
-            </div>
-            <div className="space-y-2">
-                <label className="text-emerald-500 font-bold text-sm">Ceia <span className="opacity-50 text-xs font-normal">(Opcional)</span></label>
-                <textarea 
-                    value={dietForm.ceia} 
-                    onChange={e => handleChangeDiet("ceia", e.target.value)}
-                    placeholder="Descrição..."
-                    className="w-full h-24 bg-zinc-800 border border-zinc-700 text-white rounded-lg p-3 resize-none focus:outline-none focus:border-green-500 transition-colors custom-scrollbar"
-                />
-            </div>
+         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {[
+                { key: "cafeDaManha", label: "Café da Manhã" },
+                { key: "almoco", label: "Almoço" },
+                { key: "lancheTarde", label: "Lanche da Tarde" },
+                { key: "janta", label: "Janta" },
+                { key: "ceia", label: "Ceia" }
+            ].map(meal => (
+                <div key={meal.key} className="space-y-2">
+                    <label className="text-emerald-500 font-bold text-xs uppercase tracking-wider">{meal.label}</label>
+                    <textarea 
+                        value={dietForm[meal.key]} 
+                        onChange={e => handleChangeDiet(meal.key, e.target.value)}
+                        placeholder="O que comeu?"
+                        className="w-full h-20 sm:h-24 bg-zinc-800 border border-zinc-700 text-white rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all custom-scrollbar"
+                    />
+                </div>
+            ))}
          </div>
       </div>
 
