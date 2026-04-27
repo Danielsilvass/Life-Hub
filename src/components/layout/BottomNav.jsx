@@ -23,8 +23,12 @@ export default function BottomNav() {
               }`
             }
           >
-            <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-            <span className="text-[10px] font-medium uppercase tracking-wider">{item.label}</span>
+            {({ isActive }) => (
+              <>
+                <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                <span className="text-[10px] font-medium uppercase tracking-wider">{item.label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </div>
