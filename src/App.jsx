@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Sidebar from './components/layout/Sidebar';
 import MobileHeader from './components/layout/MobileHeader';
 import BottomNav from './components/layout/BottomNav';
+import InstallPrompt from './components/layout/InstallPrompt';
 import Login from './pages/Login';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -63,6 +64,7 @@ function AppContent() {
 
           <BottomNav />
         </div>
+        <InstallPrompt />
       </div>
     </Router>
   );
